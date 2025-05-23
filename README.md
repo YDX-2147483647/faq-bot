@@ -1,10 +1,17 @@
 # faq-bot
 
-## How to start
+## 开发
 
-1. generate project using `nb create` .
-2. install plugins using `nb plugin install` .
-3. run your bot using `nb run` .
+```shell
+cd ./faq-bot
+uv run nb run --reload
+```
+
+## 相关文档
+
+- [NoneBot | 跨平台 Python 异步机器人框架](https://nonebot.dev/)
+- [OneBot 协议适配 - NoneBot](https://onebot.adapters.nonebot.dev/)
+- [NapCatQQ | 现代化的基于 NTQQ 的 Bot 协议端实现](https://napneko.github.io/)
 
 ## 部署方法
 
