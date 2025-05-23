@@ -11,6 +11,9 @@ dependencies = [
     "nonebot2[fastapi]>=2.4.2",
 ]
 
+[dependency-groups]
+dev = ["nonebot-adapter-console>=0.6.0", "pip>=25.1.1"]
+
 [tool.nonebot]
 adapters = [
     # Uncomment the following line for developing.
@@ -18,11 +21,8 @@ adapters = [
     { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" },
 ]
 plugins = ["nonebot_plugin_status"]
-plugin_dirs = []
+plugin_dirs = ["faq_bot/plugins"]
 builtin_plugins = ["echo"]
 
-[dependency-groups]
-dev = [
- "nonebot-adapter-console>=0.6.0",
- "pip>=25.1.1",
-]
+[tool.ruff.lint]
+extend-select = ["I", "TYP", "UP"]
