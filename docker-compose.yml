@@ -1,0 +1,27 @@
+version: "3"
+services:
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    container_name: napcat
+    restart: always
+    ports:
+      - 6099:6099 # Web UI
+    environment:
+      - ACCOUNT=123456_要登录的QQ号 # TODO
+      # Set according to `id -g`, `id -u`
+      - NAPCAT_GID=1000
+      - NAPCAT_UID=1000
+    volumes:
+      - ./app/.config/QQ:/app/.config/QQ
+      - ./app/napcat/config:/app/napcat/config
+  nonebot:
+    build:
+      context: ./nonebot
+    container_name: nonebot
+    restart: always
+    command: nb run --reload
+    ports:
+      - 8080:8080 # WebSocket
+    environment:
+      - HOST=0.0.0.0
+      - ONEBOT_ACCESS_TOKEN=abc123_WebSocket的token # TODO

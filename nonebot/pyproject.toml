@@ -1,0 +1,24 @@
+[project]
+name = "faq-bot"
+version = "0.1.0"
+description = "faq-bot"
+readme = "README.md"
+requires-python = ">=3.9, <4.0"
+dependencies = [
+    # "nonebot-adapter-console>=0.6.0",
+    "nonebot-adapter-onebot>=2.4.6",
+    "nonebot-plugin-status>=0.9.0",
+    "nonebot2[fastapi]>=2.4.2",
+]
+
+[tool.nonebot]
+adapters = [
+    # { name = "Console", module_name = "nonebot.adapters.console" },
+    { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" },
+]
+plugins = ["nonebot_plugin_status"]
+plugin_dirs = []
+builtin_plugins = ["echo"]
+
+[dependency-groups]
+dev = ["nb-cli>=1.4.2", "pip>=25.1.1"]
