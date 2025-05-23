@@ -16,7 +16,7 @@ services:
       - ./app/napcat/config:/app/napcat/config
   nonebot:
     build:
-      context: ./nonebot
+      context: ./faq-bot
     container_name: nonebot
     restart: always
     command: nb run --reload
