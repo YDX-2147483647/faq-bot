@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
 
 提问内容可直接写，也可引用之前的消息。
 
-只支持最基本的单轮文本对话；若需多轮对话、推荐问题、回答来源等功能，请直接使用学校的Web服务：
+只支持最基本的单轮文本对话；若需多轮对话、推荐问题、渲染格式等功能，请直接使用学校的Web服务：
 https://agent.bit.edu.cn/product/llm/chat/d05ee4rha6ps7396rueg
 
 另外，Agent.BIT 并不万能，有些问题询问通用大语言模型更好更快。实例可参考：

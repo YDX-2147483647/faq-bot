@@ -5,7 +5,10 @@ class ScopedConfig(BaseModel):
     """Plugin Config Here"""
 
     app_id: str
-    """智能体编辑页面 → 概览 → 后端服务API → APPID"""
+    """智能体编辑页面 → 概览 → 后端服务API → APPID
+    
+    似乎实际用不到。
+    """
 
     app_token: str
     """智能体编辑页面 → 概览 → 后端服务API → API 密钥 → 密钥"""
