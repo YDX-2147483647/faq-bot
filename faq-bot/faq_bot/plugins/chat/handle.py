@@ -30,7 +30,7 @@ async def handle(message: str) -> str:
             json={"UserID": config.user_id},
         )
         conversation = r.json()["Conversation"]["AppConversationID"]
-        logger.debug(f"Created the conversation {conversation}")
+        logger.info(f"Created the conversation {conversation}")
 
         # 提问
         r = await client.post(
@@ -43,7 +43,7 @@ async def handle(message: str) -> str:
             },
             timeout=60,  # 1 min
         )
-        logger.debug(f"Received the chat streaming of conversation {conversation}")
+        logger.info(f"Received the chat streaming of conversation {conversation}")
 
         # 整理 streaming 的消息太复杂，所以我们只提取 message_id，准备重新获取消息
         message_id: str | None = None
