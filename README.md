@@ -36,6 +36,7 @@ flowchart LR
 
    - 设置 NapCat 容器的环境变量`$ACCOUNT`，指定要登录的 QQ 账号。
    - 设置 NoneBot 容器的环境变量`$ONEBOT_ACCESS_TOKEN`，作为 WebSocket 的 token。
+   - 设置 faq-bot 的环境变量，编辑[`.env`](./faq-bot/.env)。
 
 2. 运行`docker-compose up --detach`，启动 NapCat 和 NoneBot。
 
