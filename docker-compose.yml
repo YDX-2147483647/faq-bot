@@ -25,3 +25,5 @@ services:
     environment:
       - HOST=0.0.0.0
       - ONEBOT_ACCESS_TOKEN=abc123_WebSocket的token # TODO
+    volumes:
+      - ./faq-bot/faq_bot:/app/faq_bot
