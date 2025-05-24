@@ -1,8 +1,5 @@
 """调用 HiAgent
 
-网信中心老师提供的API文档
-https://github.com/Decent898/live2d-project-for-HCI/blob/dbfd27e3198600f84d50cb32aef68142e6f334fa/api_test/llm_api/v1.5.0-chat_api_doc-v4.pdf
-
 参考实现
 https://github.com/Decent898/live2d-project-for-HCI/blob/dbfd27e3198600f84d50cb32aef68142e6f334fa/api_test/llm_api/api_test2.py
 """

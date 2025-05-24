@@ -1,5 +1,15 @@
 # faq-bot
 
+BIThesis 交流群的机器人。
+
+功能：
+
+- `/search ⟨关键词⟩…`——搜索 [BIThesis 网站](https://bithesis.bitnp.net)的标题和 URL。
+
+- `/chat ⟨提问内容⟩`——与[北京理工大学智能体广场](https://agent.bit.edu.cn)的“LaTeX-BIThesis帮助”机器人聊天。
+
+宗旨：快速帮助新人学会搜索资料。这个机器人只提供基础功能，是起点而非终点。
+
 ## 开发
 
 ```shell
@@ -12,6 +22,7 @@ uv run nb run --reload
 - [NoneBot | 跨平台 Python 异步机器人框架](https://nonebot.dev/)
 - [OneBot 协议适配 - NoneBot](https://onebot.adapters.nonebot.dev/)
 - [NapCatQQ | 现代化的基于 NTQQ 的 Bot 协议端实现](https://napneko.github.io/)
+- [HiAgent 后端 API 文档](https://github.com/Decent898/live2d-project-for-HCI/blob/dbfd27e3198600f84d50cb32aef68142e6f334fa/api_test/llm_api/v1.5.0-chat_api_doc-v4.pdf)（感谢 Decent898）
 
 ## 部署方法
 
