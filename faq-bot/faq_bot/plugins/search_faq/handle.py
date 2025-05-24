@@ -11,9 +11,8 @@ assert not BASE_URL.endswith("/")
 async def handle(message: str) -> str:
     """回复消息"""
     sitemap = await get_sitemap()
-    relevant = [
-        (url, title) for url, title in sitemap if message in url or message in title
-    ]
+    keywords = message.split()
+    relevant = [(url, title) for url, title in sitemap if match(keywords, [url, title])]
 
     if relevant:
         max_len = 5
@@ -25,6 +24,15 @@ async def handle(message: str) -> str:
         return reply
     else:
         return f"未找到结果，建议手动搜索。\n{BASE_URL}/guide/ask-computer.html"
+
+
+def match(keywords: list[str], documents: list[str]) -> bool:
+    """判断是否有某一`documents`包含某一`fragements`"""
+    for key in keywords:
+        for doc in documents:
+            if key in doc:
+                return True
+    return False
 
 
 # `functools.cache` does not work properly with async functions.
