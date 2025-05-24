@@ -11,13 +11,13 @@ from .handle import handle
 __plugin_meta__ = PluginMetadata(
     name="search-faq",
     description="搜索FAQ",
-    usage="/repeat ……（可以同时引用之前的消息）",
+    usage="/search ……（可以同时引用之前的消息）",
     config=Config,
 )
 
 config = get_plugin_config(Config)
 
-repeat = on_command("repeat", rule=to_me(), aliases={"重复"}, priority=5, block=True)
+repeat = on_command("search", rule=to_me(), aliases={"搜索"}, priority=5, block=True)
 
 
 @repeat.handle()
