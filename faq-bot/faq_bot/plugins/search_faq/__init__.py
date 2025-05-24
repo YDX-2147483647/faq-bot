@@ -30,7 +30,7 @@ async def handle_repeat(bot: Bot, event: MessageEvent, args: Message = CommandAr
     # 如果引用了消息，一并附上
     if event.reply:
         quoted = event.reply.message.extract_plain_text().strip()
-        message.append([f"> {line}" for line in quoted.splitlines()])
+        message.append("\n".join(f"> {line}" for line in quoted.splitlines()))
 
     reply = await handle("\n\n".join(message))
 
