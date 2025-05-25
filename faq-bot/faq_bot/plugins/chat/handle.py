@@ -73,10 +73,7 @@ async def handle(message: str) -> str:
         logger.debug(f"Parsed the message {message_id} of conversation {conversation}")
 
     answer: str = response["MessageInfo"]["AnswerInfo"]["Answer"]
-
-    tracing: list[dict] = json.loads(
-        response["MessageInfo"]["AnswerInfo"]["TracingJsonStr"]
-    )
+    tracing: str = response["MessageInfo"]["AnswerInfo"]["TracingJsonStr"]
 
     return "\n\n".join(
         block
@@ -89,11 +86,22 @@ async def handle(message: str) -> str:
     )
 
 
-def humanize_tracing(tracing: list[dict]) -> str | None:
+def humanize_tracing(tracing_json_str: str) -> str | None:
     """Humanize TracingJsonStr
 
     通常包括回答来源，但也可能没有。
     """
+    try:
+        tracing: list[dict] = json.loads(tracing_json_str)
+    except json.JSONDecodeError as error:
+        logger.error(error)
+        return "\n".join(
+            [
+                "═══ ERROR ═══",
+                "TracingJsonStr 解析失败，导致无法确定回答来源。",
+                repr(error),
+            ]
+        )
 
     if (docs := tracing[-1].get("docs")) is not None and len(docs["outputList"]) > 0:
         # pairs[n] = (名称, URL/ID)；由于有知识库、问答库等多种类型，这里仅简单处理
