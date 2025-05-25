@@ -95,7 +95,7 @@ def humanize_tracing(tracing: list[dict]) -> str | None:
     通常包括回答来源，但也可能没有。
     """
 
-    if (docs := tracing[-1].get("docs")) is not None:
+    if (docs := tracing[-1].get("docs")) is not None and len(docs["outputList"]) > 0:
         # pairs[n] = (名称, URL/ID)；由于有知识库、问答库等多种类型，这里仅简单处理
         pairs: list[tuple[str, str]] = [
             (
