@@ -17,11 +17,13 @@ async def to_me_seriously_if_qq_group(event: Event) -> bool:
     """匹配规则：不仅与机器人有关，而且要么@了，要么是私聊
 
     与`to_me`相比，不会匹配“群聊中只回复未@”的情形，且仅限制 OneBot QQ。
+
+    已知的问题：有多个 OneBot 适配器时，判断可能不合预期。
     """
     if not isinstance(event, GroupMessageEvent):
         return True
 
+    me = str(event.self_id)
     return any(
-        m.type == "at" and m.data.get("qq", event.self_id) == event.self_id
-        for m in event.original_message
+        m.type == "at" and m.data.get("qq") == me for m in event.original_message
     )
