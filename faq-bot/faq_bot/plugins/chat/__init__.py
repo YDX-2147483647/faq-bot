@@ -7,6 +7,7 @@ from nonebot.rule import to_me
 
 from .config import Config
 from .handle import handle
+from .util import not_cmd
 
 __plugin_meta__ = PluginMetadata(
     name="聊天",
@@ -39,8 +40,8 @@ config = get_plugin_config(Config).chat
 
 chat_cmd = on_command("chat", rule=to_me(), aliases={"聊天"}, priority=5, block=True)
 
-# 由于匹配范围太广，必须低优先级
-chat_all = on_message(rule=to_me(), priority=100, block=True)
+# 由于匹配范围太广，必须低优先级；为了避让`block=False`的命令，也需`not_cmd`
+chat_all = on_message(rule=to_me() & not_cmd, priority=100, block=True)
 
 
 async def handle_chat_general(message: str, /, *, quoted: str | None = None) -> str:
