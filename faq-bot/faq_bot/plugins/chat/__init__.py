@@ -7,7 +7,7 @@ from nonebot.rule import to_me
 
 from .config import Config
 from .handle import handle
-from .util import not_cmd
+from .util import not_cmd, to_me_seriously_if_qq_group
 
 __plugin_meta__ = PluginMetadata(
     name="聊天",
@@ -40,8 +40,14 @@ config = get_plugin_config(Config).chat
 
 chat_cmd = on_command("chat", rule=to_me(), aliases={"聊天"}, priority=5, block=True)
 
-# 由于匹配范围太广，必须低优先级；为了避让`block=False`的命令，也需`not_cmd`
-chat_all = on_message(rule=to_me() & not_cmd, priority=100, block=True)
+chat_all = on_message(
+    # 为了避让`block=False`的命令，需要`not_cmd`
+    # 为了允许向他人引用机器人的发言而不让机器人回复，需要 seriously
+    rule=to_me() & not_cmd & to_me_seriously_if_qq_group,
+    # 由于匹配范围太广，必须低优先级
+    priority=100,
+    block=True,
+)
 
 
 async def handle_chat_general(message: str, /, *, quoted: str | None = None) -> str:
