@@ -3,9 +3,12 @@ import re
 from collections.abc import Generator
 
 import httpx
+from nonebot import get_plugin_config
 
-BASE_URL = "https://bithesis.bitnp.net"
-assert not BASE_URL.endswith("/")
+from .config import Config
+
+config = get_plugin_config(Config).search_faq
+BASE_URL = config.base_url
 
 
 async def handle(message: str) -> str:

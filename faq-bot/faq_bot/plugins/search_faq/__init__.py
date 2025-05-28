@@ -34,7 +34,7 @@ __plugin_meta__ = PluginMetadata(
     config=Config,
 )
 
-config = get_plugin_config(Config)
+config = get_plugin_config(Config).search_faq
 
 repeat = on_command("search", rule=to_me(), aliases={"搜索"}, priority=5, block=True)
 
