@@ -1,6 +1,8 @@
-"""搜索的抽象接口"""
+"""搜索的抽象接口和相关通用工具"""
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from collections.abc import Awaitable
+from typing import Callable, Protocol, TypeAlias, TypeVar
 
 from nonebot import get_plugin_config
 
@@ -10,7 +12,7 @@ config = get_plugin_config(Config).search_faq
 BASE_URL = config.base_url
 
 
-class AbstractEntry(ABC):
+class AbstractEntry(Protocol):
     url: str
     """URL without base, starting with `/`"""
 
@@ -20,6 +22,18 @@ class AbstractEntry(ABC):
         ...
 
 
-async def search(keywords: list[str]) -> list[AbstractEntry]:
-    """搜索"""
-    ...
+T = TypeVar("T", bound=AbstractEntry, covariant=True)
+SearchFn: TypeAlias = Callable[[list[str]], Awaitable[list[T]]]
+"""搜索
+
+keywords ↦ relevant entries
+"""
+
+
+def match(keywords: list[str], documents: list[str]) -> bool:
+    """判断是否有某一`documents`包含某一`fragements`"""
+    for key in keywords:
+        for doc in documents:
+            if key in doc:
+                return True
+    return False

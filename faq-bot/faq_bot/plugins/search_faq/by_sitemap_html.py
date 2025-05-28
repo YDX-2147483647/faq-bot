@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import httpx
 from nonebot import get_plugin_config
 
-from .by import AbstractEntry
+from .by import AbstractEntry, SearchFn, match
 from .config import Config
 
 config = get_plugin_config(Config).search_faq
@@ -22,7 +22,7 @@ class Entry(AbstractEntry):
         return self.title
 
 
-async def search(keywords: list[str]) -> list[Entry]:
+async def search_impl(keywords: list[str]) -> list[Entry]:
     """搜索"""
     sitemap = await get_sitemap()
     return [
@@ -32,13 +32,7 @@ async def search(keywords: list[str]) -> list[Entry]:
     ]
 
 
-def match(keywords: list[str], documents: list[str]) -> bool:
-    """判断是否有某一`documents`包含某一`fragements`"""
-    for key in keywords:
-        for doc in documents:
-            if key in doc:
-                return True
-    return False
+search: SearchFn = search_impl
 
 
 # `functools.cache` does not work properly with async functions.
