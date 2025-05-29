@@ -20,9 +20,10 @@ class Entry(AbstractEntry):
     """URL without base, starting with `/`"""
     title: str
     titles: list[str]
+    """从高级标题到低级标题，不含`title`，可能为空"""
 
     def human(self) -> str:
-        return " - ".join([self.title, *self.titles])
+        return " - ".join([self.title, *reversed(self.titles)])
 
 
 async def search_impl(keywords: list[str]) -> list[Entry]:
