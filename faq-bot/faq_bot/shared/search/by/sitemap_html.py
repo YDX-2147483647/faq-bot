@@ -28,10 +28,12 @@ async def search_impl(base_url: str, keywords: list[str]) -> list[Entry]:
 
 
 search: SearchFn = search_impl
+"""根据 /sitemap.html 搜索一级标题和 URL"""
 
 
 # `functools.cache` does not work properly with async functions.
-SITEMAP_CACHE: list[tuple[str, str]] | None = None
+SITEMAP_CACHE: dict[str, list[tuple[str, str]]] = {}
+"""base URL ↦ (url, title)[]"""
 
 
 async def get_sitemap(base_url: str) -> list[tuple[str, str]]:
@@ -41,12 +43,12 @@ async def get_sitemap(base_url: str) -> list[tuple[str, str]]:
     """
     global SITEMAP_CACHE
 
-    if SITEMAP_CACHE is None:
+    if base_url not in SITEMAP_CACHE:
         async with httpx.AsyncClient() as client:
             sitemap_html = (await client.get(f"{base_url}/sitemap.html")).text
-        SITEMAP_CACHE = list(parse_sitemap_html(sitemap_html))
+        SITEMAP_CACHE[base_url] = list(parse_sitemap_html(sitemap_html))
 
-    return SITEMAP_CACHE
+    return SITEMAP_CACHE[base_url]
 
 
 def parse_sitemap_html(html: str) -> Generator[tuple[str, str], None, None]:

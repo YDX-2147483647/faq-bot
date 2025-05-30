@@ -29,21 +29,22 @@ async def search_impl(base_url: str, keywords: list[str]) -> list[Entry]:
 
 
 search: SearchFn = search_impl
+"""根据 MiniSearch 索引搜索各级标题"""
 
 
 # `functools.cache` does not work properly with async functions.
-ENTRIES_CACHE: list[Entry] | None = None
-# TODO
+ENTRIES_CACHE: dict[str, list[Entry]] = {}
+"""base URL ↦ entries"""
 
 
 async def get_entries(base_url: str) -> list[Entry]:
     global ENTRIES_CACHE
 
-    if ENTRIES_CACHE is None:
+    if base_url not in ENTRIES_CACHE:
         index = await get_search_index(base_url)
-        ENTRIES_CACHE = list(parse_search_index(base_url, index))
+        ENTRIES_CACHE[base_url] = list(parse_search_index(base_url, index))
 
-    return ENTRIES_CACHE
+    return ENTRIES_CACHE[base_url]
 
 
 async def get_search_index(base_url: str) -> dict:
