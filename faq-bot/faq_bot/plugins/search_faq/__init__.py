@@ -1,12 +1,13 @@
-from nonebot import get_plugin_config, on_command
-from nonebot.adapters import Message
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
-from nonebot.params import CommandArg
+from nonebot import on_command
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 
-from .config import Config
-from .handle import handle
+from faq_bot.shared.search import (
+    add_handler,
+    build_handler,
+    search_by_minisearch_index,
+    search_by_sitemap_html,
+)
 
 __plugin_meta__ = PluginMetadata(
     name="搜索",
@@ -31,47 +32,15 @@ __plugin_meta__ = PluginMetadata(
 /search 生僻字
 /search font 字体
 """.strip(),
-    config=Config,
 )
 
-config = get_plugin_config(Config).search_faq
+search = on_command("search", rule=to_me(), aliases={"搜索"}, priority=5, block=True)
 
-repeat = on_command("search", rule=to_me(), aliases={"搜索"}, priority=5, block=True)
-
-
-@repeat.handle()
-async def handle_repeat(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
-    message = []
-
-    if m := args.extract_plain_text().strip():
-        message.append(m)
-
-    # 如果引用了消息，一并附上
-    if event.reply:
-        quoted = event.reply.message.extract_plain_text().strip()
-        message.append(quoted)
-
-    reply = await handle("\n\n".join(message))
-
-    await repeat.finish(reply)
-
-
-try:
-    # Dev dependencies
-    from nonebot.adapters.console import Bot as ConsoleBot
-
-    @repeat.handle()
-    async def handle_repeat_console(bot: ConsoleBot, args: Message = CommandArg()):
-        # Console 不支持引用消息，简化处理
-
-        message = []
-
-        if m := args.extract_plain_text().strip():
-            message.append(m)
-
-        reply = await handle("\n\n".join(message))
-
-        await repeat.finish(reply)
-
-except ImportError:
-    pass
+add_handler(
+    search,
+    build_handler(
+        base_url="https://bithesis.bitnp.net",
+        methods=[search_by_sitemap_html, search_by_minisearch_index],
+        if_no_result="未找到结果，建议手动搜索。\nhttps://bithesis.bitnp.net/guide/ask-computer.html",
+    ),
+)
