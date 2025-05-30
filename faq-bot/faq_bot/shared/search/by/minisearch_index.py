@@ -25,7 +25,12 @@ class Entry(AbstractEntry):
 async def search_impl(base_url: str, keywords: list[str]) -> list[Entry]:
     """搜索"""
     entries = await get_entries(base_url)
-    return [e for e in entries if match(keywords, [e.title])]
+    return [
+        e
+        for e in entries
+        # 顶级标题匹配标题和 URL，其余只匹配标题
+        if match(keywords, [e.title] if e.titles else [e.title, e.url])
+    ]
 
 
 search: SearchFn = search_impl
