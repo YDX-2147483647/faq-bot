@@ -10,7 +10,7 @@ from faq_bot.shared.search import (
 )
 
 __plugin_meta__ = PluginMetadata(
-    name="搜索",
+    name="search",
     description="搜索 BIThesis 网站",
     usage="""
 搜索 bithesis.bitnp.net 的各级标题和 URL。目前不会搜索网页内容和标签。
