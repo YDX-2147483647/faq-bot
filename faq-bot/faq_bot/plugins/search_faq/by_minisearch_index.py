@@ -2,6 +2,7 @@
 
 import json
 import re
+from collections.abc import Generator
 from dataclasses import dataclass
 
 import httpx
@@ -44,7 +45,7 @@ async def get_entries() -> list[Entry]:
 
     if ENTRIES_CACHE is None:
         index = await get_search_index()
-        ENTRIES_CACHE = parse_search_index(index)
+        ENTRIES_CACHE = list(parse_search_index(index))
 
     return ENTRIES_CACHE
 
@@ -55,15 +56,17 @@ async def get_search_index() -> dict:
     https://lucaong.github.io/minisearch/
     """
     assert not BASE_URL.endswith("/")
+    base_url = httpx.URL(BASE_URL)
+    root = base_url.path.removesuffix("/")
 
     async with httpx.AsyncClient() as client:
-        index_html = (await client.get(BASE_URL)).text
-        m = re.search(r'href="(/assets/chunks/theme\.\w+\.js)"', index_html)
+        index_html = (await client.get(BASE_URL, follow_redirects=True)).text
+        m = re.search(rf'href="({root}/assets/chunks/theme\.\w+\.js)"', index_html)
         assert m is not None
-        theme_url = f"{BASE_URL}{m.group(1)}"
+        theme_url = base_url.copy_with(path=m.group(1))
 
         theme_js = (await client.get(theme_url)).text
-        m = re.search(r'"(assets/chunks/VPLocalSearchBox\.\w+\.js)"', theme_js)
+        m = re.search(r'"(assets/chunks/VPLocalSearchBox\.[-\w]+\.js)"', theme_js)
         assert m is not None
         search_box_url = f"{BASE_URL}/{m.group(1)}"
 
@@ -76,21 +79,28 @@ async def get_search_index() -> dict:
         search_index = (
             search_index_js.strip()
             .removeprefix("const t=`")
+            .removeprefix("const t='")
+            .removesuffix("';export{t as default};")
             .removesuffix("`;export{t as default};")
             .replace(R"\`", "`")
         )
     return json.loads(search_index)
 
 
-def parse_search_index(index: dict) -> list[Entry]:
+def parse_search_index(index: dict) -> Generator[Entry]:
     assert index["serializationVersion"] == 2
     assert (
         index["documentCount"]
         == len(index["documentIds"])
         == len(index["storedFields"])
     )
+    root = httpx.URL(BASE_URL).path.removesuffix("/")
 
-    return [
-        Entry(url=index["documentIds"][key], **value)
-        for key, value in index["storedFields"].items()
-    ]
+    for key, value in index["storedFields"].items():
+        url = index["documentIds"][key].removeprefix(root)
+
+        # 若是顶级标题，移除 URL 中的 hash
+        if not value["titles"]:
+            url = str(httpx.URL(url).copy_with(fragment=None))
+
+        yield Entry(url=url, **value)
