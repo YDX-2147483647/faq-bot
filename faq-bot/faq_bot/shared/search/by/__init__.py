@@ -27,6 +27,6 @@ def match(keywords: list[str], documents: list[str]) -> bool:
     """判断是否有某一`documents`包含某一`fragements`"""
     for key in keywords:
         for doc in documents:
-            if key in doc:
+            if key.casefold() in doc.casefold():
                 return True
     return False
