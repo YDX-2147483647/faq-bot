@@ -8,11 +8,13 @@ from faq_bot.shared.search import (
     search_by_minisearch_index,
 )
 
+from .by_official_docs import search as search_by_official_docs
+
 __plugin_meta__ = PluginMetadata(
     name="tyd",
-    description="搜索 Typst 中文社区导航",
+    description="搜索 Typst 中文社区导航和官方文档",
     usage="""
-搜索 typst-doc-cn.github.io/guide 的各级标题和 URL。目前不会搜索网页内容和标签。
+先搜索 typst-doc-cn.github.io/guide 的各级标题和 URL；若无结果，再搜索 typst.app/docs 的标题和类型名。目前不会搜索网页内容和标签。
 
 用法：
 /tyd ⟨关键词⟩…
@@ -30,6 +32,8 @@ __plugin_meta__ = PluginMetadata(
 /tyd Word
 /tyd 圆角表格
 /tyd 三线表 table
+/tyd hanging
+/tyd zip
 """.strip(),
 )
 
@@ -40,8 +44,8 @@ tyd = on_command(
 add_handler(
     tyd,
     build_handler(
-        base_url="https://typst-doc-cn.github.io/guide",
-        methods=[search_by_minisearch_index],
+        base_url=["https://typst-doc-cn.github.io/guide", "https://typst.app"],
+        methods=[search_by_minisearch_index, search_by_official_docs],
         if_no_result="未找到结果，建议手动搜索。\nhttps://typst-doc-cn.github.io/guide",
     ),
 )
