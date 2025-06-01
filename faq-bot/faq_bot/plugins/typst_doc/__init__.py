@@ -1,6 +1,5 @@
 from nonebot import on_command
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
 
 from faq_bot.shared.search import (
     add_handler,
@@ -37,9 +36,7 @@ __plugin_meta__ = PluginMetadata(
 """.strip(),
 )
 
-tyd = on_command(
-    "tyd", rule=to_me(), aliases={"typdoc", "typst-doc"}, priority=5, block=True
-)
+tyd = on_command("tyd", aliases={"typdoc", "typst-doc"}, priority=5, block=True)
 
 add_handler(
     tyd,
