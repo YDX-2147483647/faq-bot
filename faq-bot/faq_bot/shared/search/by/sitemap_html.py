@@ -2,8 +2,10 @@
 
 from collections.abc import Generator
 from dataclasses import dataclass
+from datetime import timedelta
 
 import httpx
+from async_lru import alru_cache
 
 from . import AbstractEntry, SearchFn, match
 
@@ -31,24 +33,15 @@ search: SearchFn = search_impl
 """根据 /sitemap.html 搜索一级标题和 URL"""
 
 
-# `functools.cache` does not work properly with async functions.
-SITEMAP_CACHE: dict[str, list[tuple[str, str]]] = {}
-"""base URL ↦ (url, title)[]"""
-
-
+@alru_cache(ttl=timedelta(days=3).total_seconds())
 async def get_sitemap(base_url: str) -> list[tuple[str, str]]:
     """获取网站地图
 
     返回格式为 (URL, 标题)[]。注意为方便搜索，URL 以`/`开头，不带`BASE_URL`。
     """
-    global SITEMAP_CACHE
-
-    if base_url not in SITEMAP_CACHE:
-        async with httpx.AsyncClient() as client:
-            sitemap_html = (await client.get(f"{base_url}/sitemap.html")).text
-        SITEMAP_CACHE[base_url] = list(parse_sitemap_html(sitemap_html))
-
-    return SITEMAP_CACHE[base_url]
+    async with httpx.AsyncClient() as client:
+        sitemap_html = (await client.get(f"{base_url}/sitemap.html")).text
+    return list(parse_sitemap_html(sitemap_html))
 
 
 def parse_sitemap_html(html: str) -> Generator[tuple[str, str], None, None]:

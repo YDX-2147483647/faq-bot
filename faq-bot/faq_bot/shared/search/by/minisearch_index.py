@@ -4,8 +4,10 @@ import json
 import re
 from collections.abc import Generator
 from dataclasses import dataclass
+from datetime import timedelta
 
 import httpx
+from async_lru import alru_cache
 
 from . import AbstractEntry, SearchFn, match
 
@@ -37,19 +39,10 @@ search: SearchFn = search_impl
 """根据 MiniSearch 索引搜索各级标题"""
 
 
-# `functools.cache` does not work properly with async functions.
-ENTRIES_CACHE: dict[str, list[Entry]] = {}
-"""base URL ↦ entries"""
-
-
+@alru_cache(ttl=timedelta(days=3).total_seconds())
 async def get_entries(base_url: str) -> list[Entry]:
-    global ENTRIES_CACHE
-
-    if base_url not in ENTRIES_CACHE:
-        index = await get_search_index(base_url)
-        ENTRIES_CACHE[base_url] = list(parse_search_index(base_url, index))
-
-    return ENTRIES_CACHE[base_url]
+    index = await get_search_index(base_url)
+    return list(parse_search_index(base_url, index))
 
 
 async def get_search_index(base_url: str) -> dict:
