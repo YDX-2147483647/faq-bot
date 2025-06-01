@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9, <4.0"
 dependencies = [
     "async-lru>=2.0.5",
+    "beautifulsoup4>=4.13.4",
     "httpx>=0.28.1",
     "nb-cli>=1.4.2",
     "nonebot-adapter-onebot>=2.4.6",
