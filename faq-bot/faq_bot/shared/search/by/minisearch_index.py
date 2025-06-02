@@ -56,7 +56,7 @@ async def get_search_index(base_url: str) -> dict:
 
     async with httpx.AsyncClient() as client:
         index_html = (await client.get(base_url, follow_redirects=True)).text
-        m = re.search(rf'href="({root}/assets/chunks/theme\.\w+\.js)"', index_html)
+        m = re.search(rf'href="({root}/assets/chunks/theme\.[-\w]+\.js)"', index_html)
         assert m is not None
         theme_url = parsed.copy_with(path=m.group(1))
 
@@ -66,7 +66,9 @@ async def get_search_index(base_url: str) -> dict:
         search_box_url = f"{base_url}/{m.group(1)}"
 
         search_box_js = (await client.get(search_box_url)).text
-        m = re.search(r'import\("\.(/@localSearchIndexroot\.\w+\.js)"\)', search_box_js)
+        m = re.search(
+            r'import\("\.(/@localSearchIndexroot\.[-\w]+\.js)"\)', search_box_js
+        )
         assert m is not None
         search_index_url = f"{base_url}/assets/chunks{m.group(1)}"
 
