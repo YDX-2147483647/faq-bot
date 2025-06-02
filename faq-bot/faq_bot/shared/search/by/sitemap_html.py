@@ -2,15 +2,12 @@
 
 from collections.abc import Generator
 from dataclasses import dataclass
+from datetime import timedelta
 
 import httpx
-from nonebot import get_plugin_config
+from async_lru import alru_cache
 
-from .by import AbstractEntry, SearchFn, match
-from .config import Config
-
-config = get_plugin_config(Config).search_faq
-BASE_URL = config.base_url
+from . import AbstractEntry, SearchFn, match
 
 
 @dataclass
@@ -22,9 +19,9 @@ class Entry(AbstractEntry):
         return self.title
 
 
-async def search_impl(keywords: list[str]) -> list[Entry]:
+async def search_impl(base_url: str, keywords: list[str]) -> list[Entry]:
     """搜索"""
-    sitemap = await get_sitemap()
+    sitemap = await get_sitemap(base_url)
     return [
         Entry(url=url, title=title)
         for url, title in sitemap
@@ -33,25 +30,18 @@ async def search_impl(keywords: list[str]) -> list[Entry]:
 
 
 search: SearchFn = search_impl
+"""根据 /sitemap.html 搜索一级标题和 URL"""
 
 
-# `functools.cache` does not work properly with async functions.
-SITEMAP_CACHE: list[tuple[str, str]] | None = None
-
-
-async def get_sitemap() -> list[tuple[str, str]]:
+@alru_cache(ttl=timedelta(days=3).total_seconds())
+async def get_sitemap(base_url: str) -> list[tuple[str, str]]:
     """获取网站地图
 
     返回格式为 (URL, 标题)[]。注意为方便搜索，URL 以`/`开头，不带`BASE_URL`。
     """
-    global SITEMAP_CACHE
-
-    if SITEMAP_CACHE is None:
-        async with httpx.AsyncClient() as client:
-            sitemap_html = (await client.get(f"{BASE_URL}/sitemap.html")).text
-        SITEMAP_CACHE = list(parse_sitemap_html(sitemap_html))
-
-    return SITEMAP_CACHE
+    async with httpx.AsyncClient() as client:
+        sitemap_html = (await client.get(f"{base_url}/sitemap.html")).text
+    return list(parse_sitemap_html(sitemap_html))
 
 
 def parse_sitemap_html(html: str) -> Generator[tuple[str, str], None, None]:

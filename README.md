@@ -1,12 +1,16 @@
 # faq-bot
 
-BIThesis 交流群的机器人。
+BIThesis 交流群和 Typst 非官方中文交流群的机器人。
 
-功能：
+功能：（详见`/help`）
 
 - `/search ⟨关键词⟩…`——搜索 [BIThesis 网站](https://bithesis.bitnp.net)的标题和 URL。
 
 - `/chat ⟨提问内容⟩`——与[北京理工大学智能体广场](https://agent.bit.edu.cn)的“LaTeX-BIThesis帮助”机器人聊天。
+
+- `/tyd ⟨关键词⟩…`——搜索 [Typst 中文社区导航](https://typst-doc-cn.github.io/guide)和[官方文档](https://typst.app/docs)。
+
+- `/univ ⟨package⟩`——预览 [Typst Universe](https://typst.app/universe) 上的包。（需要 Nana 机器人）
 
 宗旨：快速帮助新人学会搜索资料。这个机器人只提供基础功能，是起点而非终点。
 
@@ -23,6 +27,7 @@ uv run nb run --reload
 - [OneBot 协议适配 - NoneBot](https://onebot.adapters.nonebot.dev/)
 - [NapCatQQ | 现代化的基于 NTQQ 的 Bot 协议端实现](https://napneko.github.io/)
 - [HiAgent 后端 API 文档](https://github.com/Decent898/live2d-project-for-HCI/blob/dbfd27e3198600f84d50cb32aef68142e6f334fa/api_test/llm_api/v1.5.0-chat_api_doc-v4.pdf)（感谢 Decent898）
+- [tinymist-package](https://github.com/Myriad-Dreamin/tinymist/tree/cecb424b1e5f7977d956452380ded46d6dcbda21/crates/tinymist-package)（感谢 Myriad-Dreamin）
 
 ## 部署方法
 
@@ -39,6 +44,8 @@ flowchart LR
   end
 
   本地设备 -->|http 6099<br>管理界面| NapCat
+
+  NoneBot -->|https| 外部网络资源
 ```
 
 初次部署：
