@@ -1,4 +1,8 @@
-"""根据 MiniSearch 索引搜索各级标题"""
+"""根据 VitePress 网站的 MiniSearch 索引搜索各级标题
+
+https://vitepress.dev
+https://lucaong.github.io/minisearch
+"""
 
 import json
 import re
@@ -36,7 +40,7 @@ async def search_impl(base_url: str, keywords: list[str]) -> list[Entry]:
 
 
 search: SearchFn = search_impl
-"""根据 MiniSearch 索引搜索各级标题"""
+"""根据 VitePress 网站的 MiniSearch 索引搜索各级标题"""
 
 
 @alru_cache(ttl=timedelta(days=3).total_seconds())
