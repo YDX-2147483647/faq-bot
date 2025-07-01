@@ -25,6 +25,9 @@ services:
     environment:
       - HOST=0.0.0.0
       - ONEBOT_ACCESS_TOKEN=abc123_WebSocket的token # TODO
+      - TYPST_FONT_PATHS=/app/fonts
     volumes:
       - ./faq-bot/.env:/app/.env
       - ./faq-bot/faq_bot:/app/faq_bot
+      - /usr/share/fonts/opentype/noto:/app/fonts # TODO: Install by `apt install fonts-noto-cjk`
+      - ~/.local/bin/typst:/usr/local/bin/typst # TODO: Manually install
