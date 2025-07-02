@@ -27,7 +27,7 @@
       let θ = 360deg * i / n
       arc(
         (r * calc.cos(θ), r * calc.sin(θ)),
-        start: θ,
+        start: θ - 3deg,
         delta: 360deg / n,
         fill: if calc.even(i) { purple.lighten(50%) } else {
           green.lighten(50%)

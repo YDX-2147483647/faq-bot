@@ -29,5 +29,7 @@ services:
     volumes:
       - ./faq-bot/.env:/app/.env
       - ./faq-bot/faq_bot:/app/faq_bot
-      - /usr/share/fonts/opentype/noto:/app/fonts # TODO: Install by `apt install fonts-noto-cjk`
-      - ~/.local/bin/typst:/usr/local/bin/typst # TODO: Manually install
+      # TODO: 确认以下 typst 基础设施挂载路径
+      - /usr/share/fonts/opentype/noto:/app/fonts/noto-cjk:ro
+      - /usr/share/fonts/truetype/noto:/app/fonts/noto-color-emoji:ro
+      - ~/.local/bin/typst:/usr/local/bin/typst:ro

@@ -12,6 +12,8 @@ BIThesis 交流群和 Typst 非官方中文交流群的机器人。
 
 - `/univ ⟨package⟩`——预览 [Typst Universe](https://typst.app/universe) 上的包。（需要 Nana 机器人）
 
+- `/ot ⟨名字⟩`——提示讨论已偏离 typst 主题。（需要[安装 typst 基础设施](#安装-typst-基础设施)）
+
 宗旨：快速帮助新人学会搜索资料。这个机器人只提供基础功能，是起点而非终点。
 
 ## 开发
@@ -70,3 +72,15 @@ flowchart LR
 1. 运行`docker-compose up --detach`，启动 NapCat 和 NoneBot。
 
 2. 运行`podman logs --follow --since 10m napcat`，查看日志，然后必要时用手机QQ扫码登录QQ账号。
+
+## 安装 typst 基础设施
+
+如需要`/ot`功能，必须安装 typst 基础设施。
+
+```shell
+sudo apt install fonts-noto-cjk
+sudo apt install fonts-noto-color-emoji
+curl https://github.com/typst/typst/releases/… -o ~/.local/bin/typst
+```
+
+然后确认[`docker-compose.yml`](./docker-compose.yml)中挂载的路径无误。
