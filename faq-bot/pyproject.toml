@@ -3,7 +3,7 @@ name = "faq-bot"
 version = "0.1.0"
 description = "faq-bot"
 readme = "README.md"
-requires-python = ">=3.9, <4.0"
+requires-python = ">=3.10, <4.0"
 dependencies = [
     "async-lru>=2.0.5",
     "beautifulsoup4>=4.13.4",

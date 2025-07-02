@@ -1,8 +1,8 @@
 """搜索的抽象接口和相关通用工具"""
 
 from abc import abstractmethod
-from collections.abc import Awaitable
-from typing import Callable, Protocol, TypeAlias, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import Protocol, TypeAlias, TypeVar
 
 
 class AbstractEntry(Protocol):

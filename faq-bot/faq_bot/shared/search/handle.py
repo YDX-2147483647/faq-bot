@@ -1,7 +1,6 @@
 # from ast import TypeAlias
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from itertools import repeat
-from typing import Callable
 
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
