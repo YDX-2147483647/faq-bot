@@ -100,6 +100,6 @@ def compile(headline: str) -> Ok | Err:
 
 def debug_info() -> str:
     """Get debug info."""
-    version = run(["typst", "--version"], text=True).stdout
-    fonts = run(["typst", "fonts"], text=True).stdout
+    version = run(["typst", "--version"], capture_output=True, text=True).stdout
+    fonts = run(["typst", "fonts", "--variants"], capture_output=True, text=True).stdout
     return f"""Version: {version}\n\nFonts:\n{fonts}"""
