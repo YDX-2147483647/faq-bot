@@ -22,6 +22,8 @@ __plugin_meta__ = PluginMetadata(
 /off-topic show-template
 
 ⟨名字⟩可直接写，可省略，也可引用别人。
+
+若⟨名字⟩不含“#”，会作为字符串处理；若⟨名字⟩含“#”，会作为 typst markup 代码处理，但仅在容器 […] 内，不支持 #pagebreak() 等功能。
 """.strip(),
 )
 
@@ -74,18 +76,41 @@ def compile(headline: str) -> Ok | Err:
         Ok: If the compilation is successful, containing the PNG output.
         Err: If the compilation fails, containing the processed error message.
     """
-    result = run(
-        [
-            "typst",
-            "compile",
-            TEMPLATE_TYP,
-            "-",
-            "--format=png",
-            "--input",
-            f"headline={headline}",
-        ],
-        capture_output=True,
-    )
+    if "#" not in headline:
+        # Pass `headline` as `str`
+        result = run(
+            [
+                "typst",
+                "compile",
+                TEMPLATE_TYP,
+                "-",
+                "--format=png",
+                "--input",
+                f"headline={headline}",
+            ],
+            capture_output=True,
+        )
+    else:
+        # Pass `headline` as typst markup codes.
+        result = run(
+            [
+                "typst",
+                "compile",
+                "-",
+                "-",
+                "--format=png",
+            ],
+            capture_output=True,
+            input=re.sub(
+                r"^  let message = \[.+\]$",
+                # Avoid `\1` from parsing as regex.
+                lambda _: f"  let message = [\n{headline}\n]",
+                TEMPLATE_TYP.read_text(encoding="utf-8"),
+                count=1,
+                flags=re.MULTILINE,
+            ).encode(),
+        )
+
     if result.returncode == 0:
         return Ok(png=result.stdout)
     else:
