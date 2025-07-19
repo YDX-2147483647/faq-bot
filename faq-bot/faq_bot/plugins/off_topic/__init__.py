@@ -18,8 +18,10 @@ __plugin_meta__ = PluginMetadata(
 用法：
 /ot ⟨名字⟩
 /ot show-template
+/ot debug
 /off-topic ⟨名字⟩
 /off-topic show-template
+/off-topic debug
 
 ⟨名字⟩可直接写，可省略，也可引用别人。
 
