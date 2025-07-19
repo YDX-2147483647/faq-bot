@@ -101,6 +101,8 @@ def compile(headline: str) -> Ok | Err:
                 "-",
                 "-",
                 "--format=png",
+                # Restrict read access
+                f"--root={Path(__file__).parent}",
             ],
             capture_output=True,
             input=re.sub(
