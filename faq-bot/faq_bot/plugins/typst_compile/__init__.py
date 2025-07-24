@@ -1,11 +1,19 @@
 import re
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import run
 from tempfile import TemporaryDirectory
+from typing import Final
 
-from nonebot import logger, on_command
-from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, MessageSegment
+from nonebot import logger, on_command, on_notice
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupRecallNoticeEvent,
+    Message,
+    MessageEvent,
+    MessageSegment,
+)
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 
@@ -25,10 +33,22 @@ __plugin_meta__ = PluginMetadata(
 默认不设置字体，会随机回落。可用字体有 Noto Sans CJK SC、Noto Serif CJK SC 等，详见`/typtyp fonts`。
 
 如果引用了先前发言，会存入`re.typ`，可以 import 或 include。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”或“typ ”会被删除。
+
+若在群中使用时误发代码，可撤回原消息，机器人会跟着撤回，除非消息太久远了。
 """.strip(),
 )
 
 typtyp = on_command("typtyp", priority=5, block=True)
+recall = on_notice(priority=5, block=False)
+
+_history: OrderedDict[int, int] = OrderedDict()
+"""An ordered map from human_message_id to bot_reply_id.
+
+Later replies come at last. Recalled messages will be removed.
+
+Only works for single-threading.
+"""
+_MAX_HISTORY: Final = 10
 
 
 @typtyp.handle()
@@ -59,11 +79,29 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
         case (_, _):
             result = compile(message, reply=reply)
 
+    # Reply with the compiled image
     reply_to_sender = MessageSegment.reply(event.message_id)
     if isinstance(result, Ok):
-        await typtyp.finish(result.pages + reply_to_sender)
+        message = result.pages + reply_to_sender
     else:
-        await typtyp.finish(result.stderr + reply_to_sender)
+        message = result.stderr + reply_to_sender
+
+    sent = await typtyp.send(message)
+
+    # Update history
+    while len(_history) >= _MAX_HISTORY:
+        _history.popitem(last=False)
+    _history[event.message_id] = sent["message_id"]
+    _history.move_to_end(event.message_id, last=True)
+
+    await typtyp.finish()
+
+
+@recall.handle()
+async def _(bot: Bot, event: GroupRecallNoticeEvent):
+    sent = _history.pop(event.message_id, default=None)
+    if sent is not None:
+        await bot.delete_msg(message_id=sent)
 
 
 def remove_regex_patterns(string: str, patterns: list[str | re.Pattern]) -> str:
