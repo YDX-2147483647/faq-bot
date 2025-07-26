@@ -82,9 +82,11 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
     # Reply with the compiled image
     reply_to_sender = MessageSegment.reply(event.message_id)
     if isinstance(result, Ok):
-        message = result.pages + reply_to_sender
+        message = reply_to_sender + result.pages
+        if result.stderr is not None:
+            message.append(result.stderr)
     else:
-        message = result.stderr + reply_to_sender
+        message = reply_to_sender + result.stderr
 
     sent = await typtyp.send(message)
 
@@ -135,6 +137,8 @@ def clean_reply(reply: Message) -> str:
 @dataclass
 class Ok:
     pages: Message
+    stderr: str | None
+    """Warnings, if exists"""
 
 
 @dataclass
@@ -178,15 +182,17 @@ def compile(
             capture_output=True,
             text=True,
         )
+        stderr = result.stderr.replace(dir.as_posix(), "")
 
         if result.returncode == 0:
             # We can also collect pages from `--make-deps`, but parsing Makefile is fragile.
             pages = sorted(dir.glob("*.png"))
             return Ok(
-                pages=Message(MessageSegment.image(p.read_bytes()) for p in pages)
+                pages=Message(MessageSegment.image(p.read_bytes()) for p in pages),
+                stderr=stderr if stderr != "" else None,
             )
         else:
-            return Err(stderr=result.stderr.replace(dir.as_posix(), ""))
+            return Err(stderr=stderr)
 
 
 def typst_fonts() -> str:
