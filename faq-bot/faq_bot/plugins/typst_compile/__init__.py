@@ -28,7 +28,7 @@ __plugin_meta__ = PluginMetadata(
 
 如果引用了先前发言，会存入`re.typ`，可以 import 或 include。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”或“typ ”会被删除。
 
-⟨文档⟩和先前发言中独占一行的`!!⟨package⟩`会被展开为`#import "@preview/⟨package⟩:⟨version⟩": *`，其中⟨version⟩是当前最新版本。
+⟨文档⟩和先前发言中，一行开头的`!!⟨package⟩`会被展开为`#import "@preview/⟨package⟩:⟨version⟩": *;`，其中⟨version⟩是当前最新版本。
 
 若在群中使用时误发代码，可撤回原消息，机器人会跟着撤回，除非消息太久远了。
 """.strip(),

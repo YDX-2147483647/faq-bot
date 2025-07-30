@@ -35,14 +35,14 @@ async def expand_magic(document: str) -> tuple[str, deque[str]]:
         version = registry.get(name, None)
         if version is not None:
             hints.append(f"Using {name} {version}.")
-            return f'#import "@preview/{name}:{version}": *'
+            return f'#import "@preview/{name}:{version}": *;'
         else:
             it = m.group()
             hints.append(f"Ignoring “{it}” because {name} is not in package registry.")
             return it
 
     return re.sub(
-        r"^\s*[!！]{2}\s*(?P<package>[-0-9a-z]+)\s*$",
+        r"^\s*[!！]{2}\s*(?P<package>[-0-9a-z]+)(?=\s|$)",
         repl,
         document,
         count=0,
