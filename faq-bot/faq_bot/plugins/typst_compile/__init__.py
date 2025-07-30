@@ -11,6 +11,7 @@ from nonebot.plugin import PluginMetadata
 
 from .clean import clean_reply
 from .history import pop_history, push_history
+from .preprocess import expand_magic
 from .typst import PREAMBLE_USAGE, Ok, typst_compile, typst_fonts
 
 __plugin_meta__ = PluginMetadata(
@@ -26,6 +27,8 @@ __plugin_meta__ = PluginMetadata(
 {PREAMBLE_USAGE}
 
 如果引用了先前发言，会存入`re.typ`，可以 import 或 include。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”或“typ ”会被删除。
+
+⟨文档⟩和先前发言中独占一行的`!!⟨package⟩`会被展开为`#import "@preview/⟨package⟩:⟨version⟩": *`，其中⟨version⟩是当前最新版本。
 
 若在群中使用时误发代码，可撤回原消息，机器人会跟着撤回，除非消息太久远了。
 """.strip(),
@@ -54,9 +57,19 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
             return
         case ("", _):
             assert reply is not None  # Fix Pylance
-            result = typst_compile(reply)
+
+            doc, hints = await expand_magic(reply)
+
+            result = typst_compile(doc)
         case (_, _):
-            result = typst_compile(message, reply=reply)
+            doc, hints = await expand_magic(message)
+            if reply is not None:
+                reply_doc, reply_hints = await expand_magic(reply)
+                hints.extend(reply_hints)
+            else:
+                reply_doc = None
+
+            result = typst_compile(doc, reply=reply_doc)
 
     # Reply with the compiled image
     reply_to_sender = MessageSegment.reply(event.message_id)
@@ -66,6 +79,10 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
             message.append(result.stderr)
     else:
         message = reply_to_sender + result.stderr
+
+    # Attach hints
+    if hints:
+        message.append("\n".join(hints))
 
     await finish(message)
 
