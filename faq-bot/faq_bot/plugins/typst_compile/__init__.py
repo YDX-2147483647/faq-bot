@@ -1,3 +1,5 @@
+from typing import Literal
+
 from nonebot import on_command, on_notice
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -6,13 +8,21 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
     MessageSegment,
 )
+from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 
 from .clean import clean_reply
 from .history import pop_history, push_history
 from .preprocess import expand_magic
-from .typst import PREAMBLE_USAGE, Ok, typst_compile, typst_fonts
+from .typst import (
+    PREAMBLE_BASIC,
+    PREAMBLE_FIT_PAGE,
+    PREAMBLE_USAGE,
+    Ok,
+    typst_compile,
+    typst_fonts,
+)
 
 __plugin_meta__ = PluginMetadata(
     name="typtyp",
@@ -22,6 +32,7 @@ __plugin_meta__ = PluginMetadata(
 
 用法：
 /typtyp ⟨文档⟩
+/typ ⟨文档⟩
 /typtyp fonts
 
 {PREAMBLE_USAGE}
@@ -34,20 +45,43 @@ __plugin_meta__ = PluginMetadata(
 """.strip(),
 )
 typtyp = on_command("typtyp", priority=5, block=True)
+typ = on_command("typ", priority=5, block=True)
 recall = on_notice(priority=5, block=False)
 
 
 @typtyp.handle()
 async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
+    await handle(typtyp, event, args, preamble_name="basic")
+
+
+@typ.handle()
+async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
+    await handle(typ, event, args, preamble_name="fit-page")
+
+
+async def handle(
+    cmd: type[Matcher],
+    event: MessageEvent,
+    args: Message = CommandArg(),
+    *,
+    preamble_name: Literal["basic", "fit-page"] = "basic",
+):
     message = args.extract_plain_text()
     reply = clean_reply(event.reply.message) if event.reply else None
 
     async def finish(message: str | Message) -> None:
         """Execute `typtyp.finish(message)` and save history."""
-        sent = await typtyp.send(message)
+        sent = await cmd.send(message)
         push_history(event.message_id, sent["message_id"])
-        await typtyp.finish()
+        await cmd.finish()
 
+    match preamble_name:
+        case "basic":
+            preamble = PREAMBLE_BASIC
+        case "fit-page":
+            preamble = PREAMBLE_FIT_PAGE
+
+    # Response with the message
     match (message.strip(), reply):
         case ("fonts", _):
             await finish(typst_fonts())
@@ -60,7 +94,7 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
 
             doc, hints = await expand_magic(reply)
 
-            result = typst_compile(doc)
+            result = typst_compile(doc, preamble=preamble)
         case (_, _):
             doc, hints = await expand_magic(message)
             if reply is not None:
@@ -69,7 +103,7 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
             else:
                 reply_doc = None
 
-            result = typst_compile(doc, reply=reply_doc)
+            result = typst_compile(doc, reply=reply_doc, preamble=preamble)
 
     # Reply with the compiled image
     reply_to_sender = MessageSegment.reply(event.message_id)

@@ -39,7 +39,10 @@ def clean_reply(reply: Message) -> str:
     return _remove_regex_patterns(
         _extract_plain_text(reply),
         [
-            r"^/typtyp\s+",  # This plugin
-            r"^typ\s+",  # Nana
+            # This plugin
+            r"^/typtyp\s+",
+            r"^/typ\s+",
+            # Nana
+            r"^typ\s+",
         ],
     )

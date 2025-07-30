@@ -8,15 +8,19 @@ from typing import Final
 from nonebot import logger
 
 PREAMBLE_USAGE: Final = """
-默认设置页面为横向 A8，可用以下代码恢复 typst 默认。支持多页。
-  #set page("a4")
+页面设置取决于命令。
+- /typtyp 默认为横向 A8，可用以下代码恢复 typst 默认。
+    #set page("a4")
+- /typ 默认根据内容自动伸缩，可用以下代码恢复 typst 默认。
+    #set page("a4", margin: auto)
+两种都支持多页。
 
 默认会设置中文字体为 Noto Serif CJK SC，包括正文、公式、代码。可用字体还有 Noto Sans CJK SC、Noto Serif CJK JP 等，详见`/typtyp fonts`。
 
 默认会设置语言为 zh，但不会设置地区。
 """.strip()
 
-PREAMBLE: Final = """
+PREAMBLE_BASIC: Final = """
 #set page(width: 74mm, height: 52mm)
 #set text(lang: "zh", font: (
   (name: "Libertinus Serif", covers: "latin-in-cjk"),
@@ -34,6 +38,11 @@ PREAMBLE: Final = """
 """.strip()
 # We do not use `#set page(paper: "a8", flipped: true)` here,
 # because it will exchange the meaning of `width` and `height`.
+
+PREAMBLE_FIT_PAGE: Final = f"""
+{PREAMBLE_BASIC}
+#set page(height: auto, width: auto, margin: 1em)
+""".strip()
 
 
 @dataclass
@@ -54,7 +63,7 @@ def typst_compile(
     /,
     *,
     reply: str | None = None,
-    preamble=PREAMBLE,
+    preamble="",
 ) -> Ok | Err:
     """Run typst compile.
 
