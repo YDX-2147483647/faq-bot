@@ -27,9 +27,10 @@ PREAMBLE_BASIC: Final = """
   "Noto Serif CJK SC",
 ))
 #show math.equation: set text(font: (
-  (name: "New Computer Modern", covers: "latin-in-cjk"),
-  "Noto Serif CJK SC",
+  // 用 New Computer Modern 修复引号会导致大括号异常，故放弃
+  // https://github.com/typst-doc-cn/guide/issues/87
   "New Computer Modern Math",
+  "Noto Serif CJK SC",
 ))
 #show raw: set text(font: (
   (name: "DejaVu Sans Mono", covers: "latin-in-cjk"),
