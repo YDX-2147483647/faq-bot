@@ -83,6 +83,9 @@ flowchart LR
 sudo apt install fonts-noto-cjk
 sudo apt install fonts-noto-color-emoji
 curl https://github.com/typst/typst/releases/… -o ~/.local/bin/typst
+
+# For /typdev
+cargo build --release && mv path/to/dev/version/typst ~/.local/bin/typst-dev
 ```
 
 然后确认[`docker-compose.yml`](./docker-compose.yml)中挂载的路径无误。

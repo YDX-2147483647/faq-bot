@@ -8,32 +8,37 @@ from typing import Final
 from nonebot import logger
 
 PREAMBLE_USAGE: Final = """
-页面设置取决于命令。
-- /typtyp 默认为横向 A8，可用以下代码恢复 typst 默认。
+页面设置取决于命令，每种都支持多页。
+- /typtyp 和 /typdev 默认为横向 A8，可用以下代码恢复 typst 默认。
     #set page("a4")
 - /typ 默认根据内容自动伸缩，可用以下代码恢复 typst 默认。
     #set page("a4", margin: auto)
-两种都支持多页。
 
-默认会设置中文字体为 Noto Serif CJK SC，包括正文、公式、代码。可用字体还有 Noto Sans CJK SC、Noto Serif CJK JP 等，详见`/typtyp fonts`。
+默认会设置中文字体为 Noto Serif CJK SC。
+- /typtyp 和 /typ 会设置所有场合的中文字体，包括正文、代码、公式。
+- /typdev 只会设置正文、代码的中文字体，并不设置公式——开发版 typst 改进了公式字体机制，尚不稳定，暂且保留 typst 默认。
+可用字体还有 Noto Sans CJK SC、Noto Serif CJK JP 等，详见`/typtyp fonts`。
 
 默认会设置语言为 zh，但不会设置地区。
 """.strip()
 
-PREAMBLE_BASIC: Final = """
+PREAMBLE_MINIMAL: Final = """
 #set page(width: 74mm, height: 52mm)
 #set text(lang: "zh", font: (
   (name: "Libertinus Serif", covers: "latin-in-cjk"),
   "Noto Serif CJK SC",
 ))
+#show raw: set text(font: (
+  (name: "DejaVu Sans Mono", covers: "latin-in-cjk"),
+  "Noto Serif CJK SC",
+))
+"""
+PREAMBLE_BASIC: Final = f"""
+{PREAMBLE_MINIMAL}
 #show math.equation: set text(font: (
   // 用 New Computer Modern 修复引号会导致大括号异常，故放弃
   // https://github.com/typst-doc-cn/guide/issues/87
   "New Computer Modern Math",
-  "Noto Serif CJK SC",
-))
-#show raw: set text(font: (
-  (name: "DejaVu Sans Mono", covers: "latin-in-cjk"),
   "Noto Serif CJK SC",
 ))
 """.strip()
@@ -63,10 +68,13 @@ def typst_compile(
     document: str,
     /,
     *,
+    executable: str | None = None,
     reply: str | None = None,
     preamble="",
 ) -> Ok | Err:
     """Run typst compile.
+
+    Default executable is `"typst"`.
 
     Returns:
         Ok: If the compilation is successful, containing the PNG pages.
@@ -86,7 +94,7 @@ def typst_compile(
 
         result = run(
             [
-                "typst",
+                executable or "typst",
                 "compile",
                 "-",
                 "{0p}.png",

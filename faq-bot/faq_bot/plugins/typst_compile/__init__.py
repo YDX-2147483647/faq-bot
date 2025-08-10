@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Literal
 
 from nonebot import on_command, on_notice
@@ -18,6 +19,7 @@ from .preprocess import expand_magic
 from .typst import (
     PREAMBLE_BASIC,
     PREAMBLE_FIT_PAGE,
+    PREAMBLE_MINIMAL,
     PREAMBLE_USAGE,
     Ok,
     typst_compile,
@@ -33,11 +35,15 @@ __plugin_meta__ = PluginMetadata(
 用法：
 /typtyp ⟨文档⟩
 /typ ⟨文档⟩
+/typdev ⟨文档⟩
 /typtyp fonts
+
+/typtyp 和 /typ 使用发布版 typst，而 /typdev 使用开发版 typst。如有需要，可联系 Y.D.X. 更新。
 
 {PREAMBLE_USAGE}
 
-如果引用了先前发言，会存入`re.typ`，可以 import 或 include。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”或“typ ”会被删除。
+如果引用了先前发言，会存入`re.typ`，可以 import、include 或 read。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”或“typ ”会被删除。
+此外，若引用了先前发言但⟨文档⟩留空，则会将先前发言作为⟨文档⟩。
 
 ⟨文档⟩和先前发言中，一行开头的`!!⟨package⟩`会被展开为`#import "@preview/⟨package⟩:⟨version⟩": *;`，其中⟨version⟩是当前最新版本。
 
@@ -46,17 +52,23 @@ __plugin_meta__ = PluginMetadata(
 )
 typtyp = on_command("typtyp", priority=5, block=True)
 typ = on_command("typ", priority=5, block=True)
+typdev = on_command("typdev", priority=5, block=True)
 recall = on_notice(priority=5, block=False)
 
 
 @typtyp.handle()
 async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
-    await handle(typtyp, event, args, preamble_name="basic")
+    await handle(typtyp, event, args, profile="basic")
 
 
 @typ.handle()
 async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
-    await handle(typ, event, args, preamble_name="fit-page")
+    await handle(typ, event, args, profile="fit-page")
+
+
+@typdev.handle()
+async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
+    await handle(typdev, event, args, profile="dev")
 
 
 async def handle(
@@ -64,7 +76,7 @@ async def handle(
     event: MessageEvent,
     args: Message = CommandArg(),
     *,
-    preamble_name: Literal["basic", "fit-page"] = "basic",
+    profile: Literal["basic", "fit-page", "dev"] = "basic",
 ):
     message = args.extract_plain_text()
     reply = clean_reply(event.reply.message) if event.reply else None
@@ -75,13 +87,7 @@ async def handle(
         push_history(event.message_id, sent["message_id"])
         await cmd.finish()
 
-    match preamble_name:
-        case "basic":
-            preamble = PREAMBLE_BASIC
-        case "fit-page":
-            preamble = PREAMBLE_FIT_PAGE
-
-    # Response with the message
+    # Response to simple commands
     match (message.strip(), reply):
         case ("fonts", _):
             await finish(typst_fonts())
@@ -89,21 +95,47 @@ async def handle(
         case ("", None):
             await finish(__plugin_meta__.usage)
             return
-        case ("", _):
-            assert reply is not None  # Fix Pylance
+        case _:
+            pass
 
-            doc, hints = await expand_magic(reply)
+    # Select preamble
+    match profile:
+        case "basic":
+            preamble = PREAMBLE_BASIC
+        case "fit-page":
+            preamble = PREAMBLE_FIT_PAGE
+        case "dev":
+            preamble = PREAMBLE_MINIMAL
 
-            result = typst_compile(doc, preamble=preamble)
-        case (_, _):
-            doc, hints = await expand_magic(message)
-            if reply is not None:
-                reply_doc, reply_hints = await expand_magic(reply)
-                hints.extend(reply_hints)
-            else:
-                reply_doc = None
+    hints: deque[str] = deque()
+    documents: list[str] = []
 
-            result = typst_compile(doc, reply=reply_doc, preamble=preamble)
+    # Select executable
+    match profile:
+        case "dev":
+            # TODO: Remove hard-coded name and version
+            executable = "typst-dev"
+            hints.append(
+                "typst version: bcc71ddb9, committed at 2025-08-07 17:27:59 +0000."
+            )
+        case _:
+            executable = None
+
+    # Parse documents
+    for part in (message, reply):
+        if part is not None and part.strip():
+            doc, hint = await expand_magic(part)
+            hints.extend(hint)
+            documents.append(doc)
+    assert len(documents) in (1, 2)
+
+    # Compile
+    result = typst_compile(
+        documents[0],
+        reply=documents[1] if len(documents) > 1 else None,
+        preamble=preamble,
+        executable=executable,
+    )
 
     # Reply with the compiled image
     reply_to_sender = MessageSegment.reply(event.message_id)
