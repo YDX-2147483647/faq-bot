@@ -26,9 +26,15 @@ async def expand_magic(document: str) -> tuple[str, deque[str]]:
 
     Returns `(processed document, hints)`.
     """
-    registry = await load_registry()
-
     hints: deque[str] = deque()
+
+    try:
+        registry = await load_registry()
+    except Exception as error:
+        hints.append(
+            f"Failed to load typst package registry: {error = }. This is okay if you don't use it."
+        )
+        return document, hints
 
     def repl(m: re.Match[str]) -> str:
         name = m.groupdict()["package"]
