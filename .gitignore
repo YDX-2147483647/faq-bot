@@ -1,4 +1,5 @@
 /app/
+/cache-typst-packages
 
 # Python-generated files
 __pycache__/
