@@ -19,7 +19,6 @@ from .preprocess import expand_magic
 from .typst import (
     PREAMBLE_BASIC,
     PREAMBLE_FIT_PAGE,
-    PREAMBLE_MINIMAL,
     PREAMBLE_USAGE,
     Ok,
     typst_compile,
@@ -100,12 +99,10 @@ async def handle(
 
     # Select preamble
     match profile:
-        case "basic":
+        case "basic" | "dev":
             preamble = PREAMBLE_BASIC
         case "fit-page":
             preamble = PREAMBLE_FIT_PAGE
-        case "dev":
-            preamble = PREAMBLE_MINIMAL
 
     hints: deque[str] = deque()
     documents: list[str] = []
@@ -115,9 +112,7 @@ async def handle(
         case "dev":
             # TODO: Remove hard-coded name and version
             executable = "typst-dev"
-            hints.append(
-                "typst version: bcc71ddb9, committed at 2025-08-07 17:27:59 +0000."
-            )
+            hints.append("typst version: v0.14.0-rc.2 (2025-10-17).")
         case _:
             executable = None
 

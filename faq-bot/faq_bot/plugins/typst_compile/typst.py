@@ -14,15 +14,13 @@ PREAMBLE_USAGE: Final = """
 - /typ 默认根据内容自动伸缩，可用以下代码恢复 typst 默认。
     #set page("a4", margin: auto)
 
-默认会设置中文字体为 Noto Serif CJK SC。
-- /typtyp 和 /typ 会设置所有场合的中文字体，包括正文、代码、公式。
-- /typdev 只会设置正文、代码的中文字体，并不设置公式——开发版 typst 改进了公式字体机制，尚不稳定，暂且保留 typst 默认。
+默认会设置中文字体为 Noto Serif CJK SC，包括正文、代码、公式。
 可用字体还有 Noto Sans CJK SC、Noto Serif CJK JP 等，详见`/typtyp fonts`。
 
 默认会设置语言为 zh，但不会设置地区。
 """.strip()
 
-PREAMBLE_MINIMAL: Final = """
+PREAMBLE_BASIC: Final = """
 #set page(width: 74mm, height: 52mm)
 #set text(lang: "zh", font: (
   (name: "Libertinus Serif", covers: "latin-in-cjk"),
@@ -32,18 +30,15 @@ PREAMBLE_MINIMAL: Final = """
   (name: "DejaVu Sans Mono", covers: "latin-in-cjk"),
   "Noto Serif CJK SC",
 ))
-"""
-PREAMBLE_BASIC: Final = f"""
-{PREAMBLE_MINIMAL}
 #show math.equation: set text(font: (
-  // 用 New Computer Modern 修复引号会导致大括号异常，故放弃
-  // https://github.com/typst-doc-cn/guide/issues/87
+  (name: "New Computer Modern Math", covers: "latin-in-cjk"),
+  (name: "Noto Serif CJK SC", covers: regex(".")),
   "New Computer Modern Math",
-  "Noto Serif CJK SC",
 ))
 """.strip()
 # We do not use `#set page(paper: "a8", flipped: true)` here,
 # because it will exchange the meaning of `width` and `height`.
+# https://github.com/typst/typst/issues/7179
 
 PREAMBLE_FIT_PAGE: Final = f"""
 {PREAMBLE_BASIC}
