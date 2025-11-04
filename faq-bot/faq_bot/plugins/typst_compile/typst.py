@@ -15,7 +15,7 @@ PREAMBLE_USAGE: Final = """
     #set page("a4", margin: auto)
 
 默认会设置中文字体为 Noto Serif CJK SC，包括正文、代码、公式。
-可用字体还有 Noto Sans CJK SC、Noto Serif CJK JP 等，详见`/typtyp fonts`。
+可用字体还有 Noto Sans CJK SC、Noto Serif CJK JP 等，详见`/typtyp fonts`或`/typtyp fonts variants`。
 
 默认会设置语言为 zh，但不会设置地区。
 """.strip()
@@ -169,7 +169,11 @@ def improve_diagnostics(
     return stderr
 
 
-def typst_fonts() -> str:
+def typst_fonts(*, list_variants=False) -> str:
     """Lists all discovered fonts with their style variants."""
-    fonts = run(["typst", "fonts", "--variants"], capture_output=True, text=True).stdout
+    fonts = run(
+        ["typst", "fonts", "--variants"] if list_variants else ["typst", "fonts"],
+        capture_output=True,
+        text=True,
+    ).stdout
     return fonts

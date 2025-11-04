@@ -89,7 +89,10 @@ async def handle(
     # Response to simple commands
     match (message.strip(), reply):
         case ("fonts", _):
-            await finish(typst_fonts())
+            await finish(typst_fonts(list_variants=False))
+            return
+        case ("fonts --variants" | "fonts variants", _):
+            await finish(typst_fonts(list_variants=True))
             return
         case ("", None):
             await finish(__plugin_meta__.usage)
