@@ -34,15 +34,17 @@ __plugin_meta__ = PluginMetadata(
 用法：
 /typtyp ⟨文档⟩
 /typ ⟨文档⟩
+/typm ⟨数学公式⟩
 /typdev ⟨文档⟩
 /typtyp fonts
 
 /typtyp 和 /typ 使用发布版 typst，而 /typdev 使用开发版 typst。如有需要，可联系 Y.D.X. 更新。
+“/typm ⟨数学公式⟩”相当于“/typ $ ⟨数学公式⟩ $”。
 
 {PREAMBLE_USAGE}
 
-如果引用了先前发言，会存入`re.typ`，可以 import、include 或 read。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”或“typ ”会被删除。
-此外，若引用了先前发言但⟨文档⟩留空，则会将先前发言作为⟨文档⟩。
+如果引用了先前发言，会存入`re.typ`，可以 import、include 或 read。只考虑直接引用，不考虑引用的引用。引用中开头的“/typtyp ”“typ ”等类似内容会被删除。
+此外，若引用了先前发言但⟨文档⟩留空，则会将先前发言作为⟨文档⟩。⟨数学公式⟩也类似。
 
 ⟨文档⟩和先前发言中，一行开头的`!!⟨package⟩`会被展开为`#import "@preview/⟨package⟩:⟨version⟩": *;`，其中⟨version⟩是当前最新版本。
 
@@ -51,6 +53,7 @@ __plugin_meta__ = PluginMetadata(
 )
 typtyp = on_command("typtyp", priority=5, block=True)
 typ = on_command("typ", priority=5, block=True)
+typm = on_command("typm", priority=5, block=True)
 typdev = on_command("typdev", priority=5, block=True)
 recall = on_notice(priority=5, block=False)
 
@@ -65,6 +68,11 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
     await handle(typ, event, args, profile="fit-page")
 
 
+@typm.handle()
+async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
+    await handle(typm, event, args, profile="math")
+
+
 @typdev.handle()
 async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
     await handle(typdev, event, args, profile="dev")
@@ -75,7 +83,7 @@ async def handle(
     event: MessageEvent,
     args: Message = CommandArg(),
     *,
-    profile: Literal["basic", "fit-page", "dev"] = "basic",
+    profile: Literal["basic", "fit-page", "math", "dev"] = "basic",
 ):
     message = args.extract_plain_text()
     reply = clean_reply(event.reply.message) if event.reply else None
@@ -104,7 +112,7 @@ async def handle(
     match profile:
         case "basic" | "dev":
             preamble = PREAMBLE_BASIC
-        case "fit-page":
+        case "fit-page" | "math":
             preamble = PREAMBLE_FIT_PAGE
 
     hints: deque[str] = deque()
@@ -124,7 +132,14 @@ async def handle(
         if part is not None and part.strip():
             doc, hint = await expand_magic(part)
             hints.extend(hint)
+
+            if profile == "math":
+                doc = doc.strip()
+                # Wrap with `$ … $` if it is not already `$ … $` or `$…$`
+                if not (doc.startswith("$") and doc.endswith("$")):
+                    doc = f"$ {doc} $"
             documents.append(doc)
+
     assert len(documents) in (1, 2)
 
     # Compile

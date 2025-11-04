@@ -42,8 +42,10 @@ def clean_reply(reply: Message) -> str:
             # This plugin
             r"^/typtyp\s+",
             r"^/typ\s+",
+            r"^/typm\s+",
             r"^/typdev\s+",
             # Nana
             r"^typ\s+",
+            r"^teq\s+",
         ],
     )
