@@ -1,11 +1,12 @@
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from random import choice
 from subprocess import run
 
 from nonebot import on_command
-from nonebot.adapters import Message
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11.event import Sender
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 
@@ -23,7 +24,7 @@ __plugin_meta__ = PluginMetadata(
 /off-topic show-template
 /off-topic debug
 
-⟨名字⟩可直接写，可省略，也可引用别人。
+⟨名字⟩可直接写，可省略，也可引用别人。如果引用了，会回复至相应消息。
 
 若⟨名字⟩不含“#”，会作为字符串处理；若⟨名字⟩含“#”，会作为 typst markup 代码处理，但仅在容器 […] 内，不支持 #pagebreak() 等功能。
 """.strip(),
@@ -37,8 +38,9 @@ assert TEMPLATE_TYP.exists() and TEMPLATE_TYP.is_file()
 
 @off_topic.handle()
 async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
-    message = args.extract_plain_text()
-    match message.strip():
+    # Determine command
+    received = args.extract_plain_text()
+    match received.strip():
         case "show-template":
             await off_topic.finish(TEMPLATE_TYP.read_text(encoding="utf-8"))
             return
@@ -46,16 +48,34 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
             await off_topic.finish(debug_info())
             return
 
-    headline = message
+    # Compile
+    headline = received
     if event.reply:
-        sender = event.reply.sender
-        headline += sender.nickname or sender.card or str(sender.user_id)
+        headline += nickname(event.reply.sender)
 
     result = compile(headline)
     if isinstance(result, Ok):
-        await off_topic.finish(MessageSegment.image(result.png))
+        message = Message(MessageSegment.image(result.png))
     else:
-        await off_topic.finish(result.stderr)
+        message = Message(result.stderr)
+
+    # Compose message
+    if event.reply:
+        message.append(MessageSegment.reply(event.reply.message_id))
+        message.append(
+            f"{choice(['🙅', '🙅‍♂️', '🙅‍♀️', '🚫', '🛑', '🈲', '😈'])} {nickname(event.reply.sender)}，{nickname(event.sender)}提醒你偏离 Typst 主题了，请不要继续在主群聊；可转去隔壁聊天室（589034686）。"
+        )
+    else:
+        message.append(
+            f"{choice(['📣', '📢', '👋', '🙏'])} {nickname(event.sender)}提醒大家偏离 Typst 主题了，建议转去隔壁聊天室（589034686）。"
+        )
+
+    await off_topic.finish(message)
+
+
+def nickname(sender: Sender) -> str:
+    """Get the nickname of the sender, fallback to other names if necessary."""
+    return sender.nickname or sender.card or str(sender.user_id)
 
 
 @dataclass
