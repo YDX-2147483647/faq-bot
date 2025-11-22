@@ -31,7 +31,9 @@ services:
       - ./faq-bot/faq_bot:/app/faq_bot
       - ./cache-typst-packages:/root/.cache/typst/packages
       # TODO: 确认以下 typst 基础设施挂载路径
-      - /usr/share/fonts/opentype/noto:/app/fonts/noto-cjk:ro
-      - /usr/share/fonts/truetype/noto:/app/fonts/noto-color-emoji:ro
+      - /usr/share/fonts/opentype:/app/fonts/opentype:ro
+      - /usr/share/fonts/truetype:/app/fonts/truetype:ro
+      - ~/.texlive/texmf-dist/fonts:/app/fonts/texlive-fonts:ro
+      - ./fonts:/app/fonts/local-fonts:ro
       - ~/.local/bin/typst:/usr/local/bin/typst:ro
       - ~/.local/bin/typst-dev:/usr/local/bin/typst-dev:ro

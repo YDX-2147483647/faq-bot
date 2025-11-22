@@ -1,5 +1,6 @@
 /app/
 /cache-typst-packages
+/fonts/
 
 # Python-generated files
 __pycache__/
