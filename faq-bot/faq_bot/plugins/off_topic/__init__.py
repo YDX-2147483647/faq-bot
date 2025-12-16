@@ -75,7 +75,7 @@ async def _(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
 
 def nickname(sender: Sender) -> str:
     """Get the nickname of the sender, fallback to other names if necessary."""
-    return sender.nickname or sender.card or str(sender.user_id)
+    return sender.card or sender.nickname or str(sender.user_id)
 
 
 @dataclass
