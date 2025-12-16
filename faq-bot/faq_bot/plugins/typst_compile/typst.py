@@ -174,6 +174,7 @@ def improve_diagnostics(
             return " " * (len(line) - len(n)) + n
 
     def fix_line_number(*, pad: bool):
+        # TODO: This does not apply to imported/included files.
         def repl(match: re.Match) -> str:
             m = match.groupdict()
             return "".join(
