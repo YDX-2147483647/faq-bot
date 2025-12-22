@@ -31,9 +31,9 @@ PREAMBLE_BASIC: Final = """
   "Noto Serif CJK SC",
 ))
 #show math.equation: set text(font: (
-  (name: "New Computer Modern Math", covers: "latin-in-cjk"),
-  (name: "Noto Serif CJK SC", covers: regex(".")),
+  (name: "Noto Serif CJK SC", covers: regex("[–—‘’“”‥‧⸺]")),
   "New Computer Modern Math",
+  "Noto Serif CJK SC",
 ))
 """.strip()
 # We do not use `#set page(paper: "a8", flipped: true)` here,
