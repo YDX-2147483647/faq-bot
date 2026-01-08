@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from subprocess import run
 from tempfile import TemporaryDirectory
-from typing import Final
+from typing import Final, Literal
 
 from nonebot import logger
 
@@ -47,9 +47,17 @@ PREAMBLE_FIT_PAGE: Final = f"""
 
 
 @dataclass
-class Ok:
+class OkCompile:
     pages: list[bytes]
     """A list of PNG pages"""
+    stderr: str | None
+    """Warnings, if exists"""
+
+
+@dataclass
+class OkEval:
+    stdout: str
+    """YAML output"""
     stderr: str | None
     """Warnings, if exists"""
 
@@ -66,7 +74,8 @@ def typst_compile(
     executable: str | None = None,
     reply: str | None = None,
     preamble="",
-) -> Ok | Err:
+    command: Literal["compile", "eval"] = "compile",
+) -> OkCompile | OkEval | Err:
     """Run typst compile.
 
     Default executable is `"typst"`.
@@ -87,19 +96,35 @@ def typst_compile(
 
         # Compile
 
-        result = run(
-            [
-                executable or "typst",
-                "compile",
-                "-",
-                "{0p}.png",
-                "--root=.",
-            ],
-            cwd=cwd,
-            input="\n".join([preamble, document]),
-            capture_output=True,
-            text=True,
-        )
+        match command:
+            case "compile":
+                result = run(
+                    [
+                        executable or "typst",
+                        "compile",
+                        "-",
+                        "{0p}.png",
+                        "--root=.",
+                    ],
+                    cwd=cwd,
+                    input="\n".join([preamble, document]),
+                    capture_output=True,
+                    text=True,
+                )
+            case "eval":
+                assert not preamble, "preamble is not supported with eval"
+                result = run(
+                    [
+                        executable or "typst",
+                        "eval",
+                        document,
+                        "--format=yaml",
+                        *([] if reply is None else ["--in", str(re_typ)]),
+                    ],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                )
 
         stderr = improve_diagnostics(
             result.stderr,
@@ -112,12 +137,19 @@ def typst_compile(
         # Return the result
 
         if result.returncode == 0:
-            # We can also collect pages from `--make-deps`, but parsing Makefile is fragile.
-            pages = sorted(cwd.glob("*.png"))
-            return Ok(
-                pages=[p.read_bytes() for p in pages],
-                stderr=stderr if stderr != "" else None,
-            )
+            match command:
+                case "compile":
+                    # We can also collect pages from `--make-deps`, but parsing Makefile is fragile.
+                    pages = sorted(cwd.glob("*.png"))
+                    return OkCompile(
+                        pages=[p.read_bytes() for p in pages],
+                        stderr=stderr if stderr != "" else None,
+                    )
+                case "eval":
+                    return OkEval(
+                        stdout=result.stdout,
+                        stderr=stderr if stderr != "" else None,
+                    )
         else:
             return Err(stderr=stderr)
 

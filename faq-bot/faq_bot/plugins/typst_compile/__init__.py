@@ -20,7 +20,8 @@ from .typst import (
     PREAMBLE_BASIC,
     PREAMBLE_FIT_PAGE,
     PREAMBLE_USAGE,
-    Ok,
+    OkCompile,
+    OkEval,
     typst_compile,
     typst_fonts,
 )
@@ -35,7 +36,9 @@ __plugin_meta__ = PluginMetadata(
 /typtyp ⟨文档⟩
 /typ ⟨文档⟩
 /typm ⟨数学公式⟩
+/typ eval ⟨表达式⟩
 /typdev ⟨文档⟩
+/typdev eval ⟨表达式⟩
 /typtyp fonts
 
 /typtyp 和 /typ 使用发布版 typst，而 /typdev 使用开发版 typst。如有需要，可联系 Y.D.X. 更新。
@@ -127,6 +130,13 @@ async def handle(
         case _:
             executable = None
 
+    if message.lstrip().startswith("eval "):
+        command = "eval"
+        message = message.lstrip().removeprefix("eval ")
+        preamble = ""
+    else:
+        command = "compile"
+
     # Parse documents
     for part in (message, reply):
         if part is not None and part.strip():
@@ -148,12 +158,17 @@ async def handle(
         reply=documents[1] if len(documents) > 1 else None,
         preamble=preamble,
         executable=executable,
+        command=command,
     )
 
     # Reply with the compiled image
     reply_to_sender = MessageSegment.reply(event.message_id)
-    if isinstance(result, Ok):
+    if isinstance(result, OkCompile):
         message = reply_to_sender + Message(map(MessageSegment.image, result.pages))
+        if result.stderr is not None:
+            message.append(result.stderr)
+    elif isinstance(result, OkEval):
+        message = reply_to_sender + result.stdout
         if result.stderr is not None:
             message.append(result.stderr)
     else:
