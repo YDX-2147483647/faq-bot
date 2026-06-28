@@ -76,11 +76,10 @@
       [
         欢迎加入 \
         #typst
-        #box({
+        #box(baseline: -45%, {
           set text(0.35em)
           set par(leading: 0.1em)
           "非官方".clusters().intersperse(linebreak()).join()
-          v(-0.8em)
         }) \
         中文交流群
       ]
